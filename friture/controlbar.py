@@ -51,8 +51,17 @@ class ControlBar(QtWidgets.QWidget):
         self.close_button.setIcon(close_icon)
         self.close_button.setToolTip("Close the audio widget")
 
+        # Create the export button
+        self.export_button = QtWidgets.QToolButton(self)
+        export_icon = QtGui.QIcon()
+        export_icon.addPixmap(QtGui.QPixmap(":/images-src/dock-export.svg"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.export_button.setIcon(export_icon)
+        self.export_button.setToolTip("Export displayed data")
+
+        # Add widgets to the layout
         self.layout.addWidget(self.combobox_select)
         self.layout.addWidget(self.settings_button)
+        self.layout.addWidget(self.export_button)  # Add the export button to the layout
         self.layout.addWidget(self.close_button)
         self.layout.addStretch()
 

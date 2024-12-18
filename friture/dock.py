@@ -51,6 +51,7 @@ class Dock(QtWidgets.QWidget):
         self.control_bar.combobox_select.activated.connect(self.indexChanged)
         self.control_bar.settings_button.clicked.connect(self.settings_slot)
         self.control_bar.close_button.clicked.connect(self.closeClicked)
+        self.control_bar.export_button.clicked.connect(self.export)
 
         #self.dockwidget = QtWidgets.QWidget(self)
         self.vbox = QtWidgets.QVBoxLayout(self)
@@ -129,14 +130,23 @@ class Dock(QtWidgets.QWidget):
     def pause(self):
         if self.audiowidget is not None:
             self.audiowidget.pause()
+            self.control_bar.export_button.setEnabled(True)
 
     def restart(self):
         if self.audiowidget is not None:
             self.audiowidget.restart()
+            self.control_bar.export_button.setEnabled(False)
 
     # slot
     def settings_slot(self, checked):
         self.audiowidget.settings_called(checked)
+    
+    def export(self):
+        if self.audiowidget is not None and hasattr(self.audiowidget, "export"):
+            try:
+                self.audiowidget.export()
+            except Exception as e:
+                print("Error exporting: ", e)
 
     # method
     def saveState(self, settings):
