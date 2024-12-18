@@ -88,6 +88,8 @@ class Spectrum_Widget(QtWidgets.QWidget):
         # initialize the settings dialog
         self.settings_dialog = Spectrum_Settings_Dialog(self)
 
+        self.last_data = []
+
     # method
     def set_buffer(self, buffer):
         self.audiobuffer = buffer
@@ -174,6 +176,8 @@ class Spectrum_Widget(QtWidgets.QWidget):
 
             self.PlotZoneSpect.setdata(self.freq, dB_spectrogram, fmax, fpitch)
 
+            self.last_data = dB_spectrogram
+
     # method
     def canvasUpdate(self):
         self.PlotZoneSpect.canvasUpdate()
@@ -183,6 +187,14 @@ class Spectrum_Widget(QtWidgets.QWidget):
 
     def restart(self):
         self.PlotZoneSpect.restart()
+    
+    def export(self):
+        import csv
+        with open(QtWidgets.QFileDialog.getSaveFileName(self, "Save FFT data", "", "CSV (*.csv)")[0], 'w', newline='') as csvfile:
+            csvwriter = csv.writer(csvfile, delimiter='\t', quotechar='|', quoting=csv.QUOTE_MINIMAL)
+            csvwriter.writerows([[self.freq[i], self.last_data[i]] for i in range(len(self.last_data))])
+        
+        print('Data saved to file')
 
     def setresponsetime(self, response_time):
         # time = SMOOTH_DISPLAY_TIMER_PERIOD_MS/1000. #DISPLAY
