@@ -70,6 +70,8 @@ class OctaveSpectrum_Widget(QtWidgets.QWidget):
         # initialize the settings dialog
         self.settings_dialog = OctaveSpectrum_Settings_Dialog(self)
 
+        self.last_data = []
+
     # method
     def set_buffer(self, buffer):
         self.audiobuffer = buffer
@@ -121,6 +123,8 @@ class OctaveSpectrum_Widget(QtWidgets.QWidget):
         db_spectrogram = 10 * log10(sp + epsilon) + w
         self.PlotZoneSpect.setdata(self.filters.flow, self.filters.fhigh, self.filters.f_nominal, db_spectrogram)
 
+        self.last_data = db_spectrogram
+
     # method
     def canvasUpdate(self):
         if not self.isVisible():
@@ -167,6 +171,14 @@ class OctaveSpectrum_Widget(QtWidgets.QWidget):
 
     def settings_called(self, checked):
         self.settings_dialog.show()
+    
+    def export(self):
+        import csv
+        with open(QtWidgets.QFileDialog.getSaveFileName(self, "Save Octave spectrum data", "", "CSV (*.csv)")[0], 'w', newline='') as csvfile:
+            csvwriter = csv.writer(csvfile, delimiter='\t', quotechar='|', quoting=csv.QUOTE_MINIMAL)
+            csvwriter.writerows([[self.filters.flow[i], self.filters.fi[i], self.filters.fhigh[i], self.last_data[i]] for i in range(len(self.last_data))])
+        
+        print('Data saved to file')
 
     def saveState(self, settings):
         self.settings_dialog.saveState(settings)
