@@ -19,8 +19,9 @@
 
 """Spectrogram widget, that displays a rolling 2D image of the time-frequency spectrum."""
 
-from PyQt5 import QtWidgets
+from PyQt5 import QtWidgets, QtGui
 from numpy import log10, floor, zeros, float64, tile, array, ndarray
+import numpy as np
 from friture.audiobuffer import AudioBuffer
 from friture.imageplot import ImagePlot
 from friture.audioproc import audioproc
@@ -110,6 +111,17 @@ class Spectrogram_Widget(QtWidgets.QWidget):
 
         self.mustRestart = False
 
+        self.export_data = []
+
+        self.parent().control_bar.reset_button = QtWidgets.QToolButton(self)
+        export_icon = QtGui.QIcon()
+        export_icon.addPixmap(QtGui.QPixmap(":/images-src/dock-export.svg"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.parent().control_bar.reset_button.setIcon(export_icon)
+        self.parent().control_bar.reset_button.setToolTip("Reset data")
+        self.parent().control_bar.layout.insertWidget(3, self.parent().control_bar.reset_button)
+
+        self.parent().control_bar.reset_button.clicked.connect(self.clear_data)
+
     # method
     def set_buffer(self, buffer: AudioBuffer) -> None:
         self.audiobuffer = buffer
@@ -174,6 +186,8 @@ class Spectrogram_Widget(QtWidgets.QWidget):
             if self.mustRestart:
                 self.PlotZoneImage.restart()
                 self.mustRestart = False
+            
+            self.export_data.append(self.log_spectrogram(spn) + w)
 
         # thickness of a frequency column depends on FFT size and window overlap
         # hamming window with 75% overlap provides good quality (Perfect reconstruction,
@@ -273,3 +287,19 @@ class Spectrogram_Widget(QtWidgets.QWidget):
     def timerangechanged(self, value):
         self.timerange_s = value
         self.PlotZoneImage.settimerange(self.timerange_s, self.dT_s)
+    
+    def clear_data(self):
+        self.export_data = []
+
+    def export(self):
+        import csv
+        self.new_data = []
+        
+        for i in range(len(self.freq)):
+            self.new_data.append([self.freq[i], np.mean(np.asarray(self.export_data)[:, i])])
+
+        with open(QtWidgets.QFileDialog.getSaveFileName(self, "Save Spectogram data", "", "CSV (*.csv)")[0], 'w', newline='') as csvfile:
+            csvwriter = csv.writer(csvfile, delimiter='\t', quotechar='|', quoting=csv.QUOTE_MINIMAL)
+            csvwriter.writerows(self.new_data)
+        
+        print('Data saved to file')
